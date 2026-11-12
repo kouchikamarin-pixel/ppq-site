@@ -1,0 +1,200 @@
+/*
+ * Contenu du site, chargé depuis le dossier data/ :
+ *   site.json        coordonnées et réseaux (pied de page, page Contact)
+ *   evenements.json  événements (accueil et page Évènements)
+ *   faq.json         questions fréquentes (page FAQ)
+ *   priere.json      programme de prière du mois (page Prières)
+ * Modifier ces fichiers suffit à mettre à jour les pages.
+ * Si un fichier ne se charge pas (ex. page ouverte directement depuis le disque),
+ * les coordonnées écrites dans le HTML restent affichées ; les listes affichent un message.
+ */
+(function () {
+  "use strict";
+
+  const DATA_DIR = "data/";
+
+  const MONTHS_FR = [
+    "Janvier",
+    "Février",
+    "Mars",
+    "Avril",
+    "Mai",
+    "Juin",
+    "Juillet",
+    "Août",
+    "Septembre",
+    "Octobre",
+    "Novembre",
+    "Décembre",
+  ];
+
+  // Devant une voyelle on écrit « d'Avril », « d'Août », « d'Octobre ».
+  const VOWEL_START = /^[AEIOU]/i;
+
+  async function fetchJson(fileName) {
+    const response = await fetch(DATA_DIR + fileName, { cache: "no-cache" });
+    if (!response.ok) {
+      throw new Error(`Impossible de charger ${fileName} (HTTP ${response.status})`);
+    }
+    return response.json();
+  }
+
+  function requireValue(source, key) {
+    if (!(key in source)) {
+      throw new Error(`Clé manquante : ${key}`);
+    }
+    return source[key];
+  }
+
+  function fieldOf(card, field) {
+    const element = card.querySelector(`[data-field="${field}"]`);
+    if (!element) {
+      throw new Error(`Champ manquant dans le modèle : ${field}`);
+    }
+    return element;
+  }
+
+  function cloneTemplate(template) {
+    return template.content.firstElementChild.cloneNode(true);
+  }
+
+  function showError(container, message) {
+    const paragraph = document.createElement("p");
+    paragraph.className = "col-12 text-center";
+    paragraph.textContent = message;
+    container.replaceChildren(paragraph);
+  }
+
+  // Coordonnées : [data-bind] reçoit un texte, [data-bind-href] reçoit un lien.
+  function bindSiteInfo(site) {
+    document.querySelectorAll("[data-bind]").forEach((element) => {
+      element.textContent = requireValue(site, element.dataset.bind);
+    });
+    document.querySelectorAll("[data-bind-href]").forEach((element) => {
+      element.setAttribute("href", requireValue(site, element.dataset.bindHref));
+    });
+  }
+
+  function renderEvents(evenements, container, template) {
+    const limit = Number(container.dataset.limit) || evenements.length;
+    const cards = evenements.slice(0, limit).map((evenement) => {
+      const card = cloneTemplate(template);
+      const image = fieldOf(card, "image");
+      image.src = requireValue(evenement, "image");
+      image.alt = requireValue(evenement, "titre");
+      card.querySelectorAll("a").forEach((link) => {
+        link.setAttribute("href", requireValue(evenement, "lien"));
+      });
+      fieldOf(card, "titre").textContent = requireValue(evenement, "titre");
+      fieldOf(card, "lieu").textContent = requireValue(evenement, "lieu");
+      fieldOf(card, "date").textContent = requireValue(evenement, "date");
+      fieldOf(card, "description").textContent = requireValue(evenement, "description");
+      return card;
+    });
+    container.replaceChildren(...cards);
+  }
+
+  function renderFaq(questions, container, template) {
+    const items = questions.map((question) => {
+      const item = cloneTemplate(template);
+      fieldOf(item, "question").textContent = requireValue(question, "question");
+      fieldOf(item, "reponse").textContent = requireValue(question, "reponse");
+
+      const list = fieldOf(item, "points");
+      if (question.points && question.points.length > 0) {
+        list.replaceChildren(
+          ...question.points.map((point) => {
+            const li = document.createElement("li");
+            li.textContent = point;
+            return li;
+          }),
+        );
+      } else {
+        list.remove();
+      }
+      return item;
+    });
+    container.replaceChildren(...items);
+  }
+
+  function getYearAndMonthIndex(timeZone, date) {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone,
+      year: "numeric",
+      month: "numeric",
+    }).formatToParts(date);
+    const findPart = (type) => {
+      const part = parts.find((p) => p.type === type);
+      if (!part) {
+        throw new Error("Format de date inattendu : " + type);
+      }
+      return Number(part.value);
+    };
+    return { year: findPart("year"), monthIndex: findPart("month") - 1 };
+  }
+
+  function prayerTitle(monthName, year) {
+    const connector = VOWEL_START.test(monthName) ? "d'" : "de ";
+    return `Prière du Mois ${connector}${monthName} (1er ${monthName} ${year})`;
+  }
+
+  function renderPrayer(priere, container, template) {
+    const now = getYearAndMonthIndex(requireValue(priere, "fuseau"), new Date());
+    const card = cloneTemplate(template);
+    fieldOf(card, "title").textContent = prayerTitle(MONTHS_FR[now.monthIndex], now.year);
+    fieldOf(card, "location").textContent = requireValue(priere, "lieu");
+    fieldOf(card, "time").textContent = requireValue(priere, "heure");
+    fieldOf(card, "text").textContent = requireValue(priere, "description");
+    fieldOf(card, "facebook").setAttribute("href", requireValue(priere, "facebook"));
+    fieldOf(card, "zoom").setAttribute("href", requireValue(priere, "zoom"));
+    container.replaceChildren(card);
+  }
+
+  async function renderSection({ containerId, templateId, fileName, render, errorMessage }) {
+    const container = document.getElementById(containerId);
+    const template = document.getElementById(templateId);
+    if (!container || !template) {
+      return;
+    }
+    try {
+      const data = await fetchJson(fileName);
+      render(data, container, template);
+    } catch (error) {
+      console.error(error);
+      showError(container, errorMessage);
+    }
+  }
+
+  async function loadSiteInfo() {
+    try {
+      bindSiteInfo(await fetchJson("site.json"));
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    loadSiteInfo();
+    renderSection({
+      containerId: "events-list",
+      templateId: "event-template",
+      fileName: "evenements.json",
+      render: renderEvents,
+      errorMessage: "Les événements sont momentanément indisponibles.",
+    });
+    renderSection({
+      containerId: "faq-list",
+      templateId: "faq-template",
+      fileName: "faq.json",
+      render: renderFaq,
+      errorMessage: "Les questions fréquentes sont momentanément indisponibles.",
+    });
+    renderSection({
+      containerId: "prayer-current",
+      templateId: "prayer-template",
+      fileName: "priere.json",
+      render: renderPrayer,
+      errorMessage: "Le programme de prière est momentanément indisponible.",
+    });
+  });
+})();

@@ -1,0 +1,122 @@
+/* Section Prières */
+main {
+    text-align: center;
+    padding: 20px;
+}
+
+.priere-section {
+    margin: 10px 20px 20px;
+    padding: 20px;
+    max-width: 500px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeInUp 0.8s ease-out forwards;
+    display: block;
+    align-items: center;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.priere-section h2 {
+    color: #88af6a;
+    font-size: 1.5em;
+    margin-bottom: 10px;
+    opacity: 0;
+    animation: fadeIn 1s 0.3s forwards;
+}
+
+.priere-section p {
+    margin: 5px 0;
+    font-size: 1em;
+    opacity: 0;
+    animation: fadeIn 1s 0.5s forwards;
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
+
+/* Liens externes */
+.external-links {
+    text-align: center;
+    background-color: #f9f9f9;
+    padding: 20px;
+    margin-top: 40px;
+    border-top: 2px solid #ddd;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeInUp 0.8s ease-out 0.6s forwards;
+}
+
+.external-links h2 {
+    font-size: 1.5em;
+    color: #88af6a;
+    margin-bottom: 15px;
+    opacity: 0;
+    animation: fadeIn 1s 0.8s forwards;
+}
+
+.social-links {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    opacity: 0;
+    animation: fadeInUp 1s ease-out 1s forwards;
+}
+
+.social-link {
+    text-decoration: none;
+    color: #333;
+    font-size: 1.2em;
+    display: flex;
+    align-items: center;
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.social-link:hover {
+    color: #88af6a;
+    transform: scale(1.1);
+}
+
+.icon {
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+    .priere-section {
+        max-width: 100%;
+        padding: 15px;
+    }
+
+    .social-links {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .social-link {
+        font-size: 1.5em;
+    }
+}
+
+@media (max-width: 480px) {
+    .priere-section h2 {
+        font-size: 1.2em;
+    }
+
+    .priere-section p {
+        font-size: 0.9em;
+    }
+}

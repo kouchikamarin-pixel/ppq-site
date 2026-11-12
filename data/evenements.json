@@ -1,0 +1,26 @@
+[
+  {
+    "titre": "Ciel Ouvert",
+    "lieu": "Espace Divine",
+    "date": "Février 2025",
+    "description": "Ciel ouvert est un programme ou nous voulons rassembler des jeunes chrétiens et impacter leur vies par des enseignements qui auront pour but principale d’allumer un feu en eux qui les pousse à franchir le mur des limitations, qui les rapproche davantage de Jésus et qui les propulse dans leur destinée prophétique en Christ.",
+    "image": "images/ppq/IMG_4474.JPG",
+    "lien": "Ciel%20Ouvert.html"
+  },
+  {
+    "titre": "Opération 316",
+    "lieu": "SÉKOU",
+    "date": "Mars 2025",
+    "description": "Opération 316 est un programme d’évangélisation ou Jésus-Christ veut opérer des miracles et se manifester par des signes et des prodiges.",
+    "image": "images/ppq/191779F0-E447-47A8-80EC-CE148A1DFBB7_1_105_c.jpeg",
+    "lien": "Op%C3%A9ration316.html"
+  },
+  {
+    "titre": "Intervention-Divine",
+    "lieu": "Cotonou",
+    "date": "Octobre 2025",
+    "description": "Rejoignez-nous pour ce programme où Dieu intervient divinement dans la vie de ses peuples",
+    "image": "images/ppq/A0626540-2A56-40B3-ACBA-DD292A20DFBB.jpeg",
+    "lien": "#"
+  }
+]

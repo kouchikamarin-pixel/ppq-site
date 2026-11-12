@@ -1,0 +1,25 @@
+[
+  {
+    "question": "qu’est-ce que parole pain quotidien ?",
+    "reponse": "Parole pain quotidien est une association Chrétienne mise en place par des Jeunes dans le but est de conquérir des nations comme Jésus-Christ nous l’a demandé"
+  },
+  {
+    "question": "Qui est le fondateur de cette association  ?",
+    "reponse": "Le fondateur de cette association ou je dirais le leader de cette association est un évangéliste de ministère dont le nom est Yann ADJANOHOUN."
+  },
+  {
+    "question": "Avez-vous un lieu où nous pouvons vous retrouvez pour prier ?",
+    "reponse": "ou bien sûr, nous nous retrouvons dans des églises de maison dénommée des cellules de prière :",
+    "points": [
+      "Akpakpa (Cotonou) au Bénin",
+      "Saint-Rita (Cotonou) au Bénin",
+      "Fidjrossè (Cotonou) au Bénin",
+      "Calavi (Cotonou) au Bénin",
+      "Montréal au Canada"
+    ]
+  },
+  {
+    "question": "Comment contacter le support ?",
+    "reponse": "Vous pouvez nous contacter via le formulaire de contact disponible dans la section \"Support\" ou par email à operation316@gmail.com"
+  }
+]
