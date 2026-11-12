@@ -99,7 +99,13 @@
       });
       fieldOf(card, "titre").textContent = requireValue(evenement, "titre");
       fieldOf(card, "lieu").textContent = requireValue(evenement, "lieu");
-      fieldOf(card, "date").textContent = dateAffichee(evenement, prochaineDate);
+      const dateText = dateAffichee(evenement, prochaineDate);
+      if (dateText) {
+        fieldOf(card, "date").textContent = dateText;
+      } else {
+        // Sans date, on retire la ligne entière (icône comprise).
+        fieldOf(card, "date").closest(".job-date")?.remove();
+      }
       fieldOf(card, "description").textContent = requireValue(evenement, "description");
       return card;
     });
