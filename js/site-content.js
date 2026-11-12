@@ -218,6 +218,82 @@
     }
   }
 
+  // Les heures de Ciel Ouvert sont celles de Cotonou (UTC+1, sans heure d'été).
+  const CIEL_UTC_OFFSET = "+01:00";
+
+  // « 18h - 22h30 » → { debut: "18:00", fin: "22:30" } ; sans heure → null.
+  function parseHoraires(heure) {
+    const horaires = [...(heure || "").matchAll(/(\d{1,2})h(\d{2})?/gi)].map(
+      (match) => `${match[1].padStart(2, "0")}:${match[2] || "00"}`,
+    );
+    return horaires.length > 0 ? { debut: horaires[0], fin: horaires[1] || horaires[0] } : null;
+  }
+
+  // Date et heure au format ICS en UTC, par ex. 20261113T170000Z.
+  function icsInstant(date) {
+    return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+  }
+
+  function escapeIcsText(text) {
+    return text
+      .replace(/\\/g, "\\\\")
+      .replace(/;/g, "\\;")
+      .replace(/,/g, "\\,")
+      .replace(/\n/g, "\\n");
+  }
+
+  function buildIcs(entry) {
+    const horaires = parseHoraires(entry.heure);
+    const lignesHoraire = horaires
+      ? [
+          `DTSTART:${icsInstant(new Date(`${entry.date}T${horaires.debut}:00${CIEL_UTC_OFFSET}`))}`,
+          `DTEND:${icsInstant(new Date(`${entry.date}T${horaires.fin}:00${CIEL_UTC_OFFSET}`))}`,
+        ]
+      : [
+          `DTSTART;VALUE=DATE:${entry.date.replace(/-/g, "")}`,
+          `DTEND;VALUE=DATE:${new Date(`${entry.date}T12:00:00Z`).toISOString().slice(0, 10).replace(/-/g, "")}`,
+        ];
+    const lignes = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//Parole Pain Quotidien//Ciel Ouvert//FR",
+      "BEGIN:VEVENT",
+      `UID:ciel-ouvert-${entry.date}@parolepainquotidien`,
+      `DTSTAMP:${icsInstant(new Date())}`,
+      ...lignesHoraire,
+      `SUMMARY:${escapeIcsText("Ciel Ouvert")}`,
+      `LOCATION:${escapeIcsText(entry.lieu || "")}`,
+      "END:VEVENT",
+      "END:VCALENDAR",
+    ];
+    return lignes.join("\r\n") + "\r\n";
+  }
+
+  function downloadIcs(entry) {
+    const blob = new Blob([buildIcs(entry)], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `ciel-ouvert-${entry.date}.ics`;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  // Liens de partage : l'adresse de la page est lue au moment de l'affichage, donc elle reste juste si le site change de domaine.
+  function setupShareLinks() {
+    const url = window.location.href.split("#")[0];
+    const texte = `${document.title} ${url}`;
+    document.querySelectorAll("[data-partage]").forEach((link) => {
+      const cible =
+        link.dataset.partage === "whatsapp"
+          ? `https://wa.me/?text=${encodeURIComponent(texte)}`
+          : `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+      link.setAttribute("href", cible);
+    });
+  }
+
   function renderCielDates(dates, container, template) {
     const upcoming = upcomingCielDates(dates);
     if (upcoming.length === 0) {
@@ -231,6 +307,7 @@
       fieldOf(item, "date").textContent = formatDateFr(entry.date);
       // L'heure et le lieu sont facultatifs : on n'affiche que ceux qui sont remplis.
       fieldOf(item, "details").textContent = [entry.heure, entry.lieu].filter(Boolean).join(" · ");
+      fieldOf(item, "ics").addEventListener("click", () => downloadIcs(entry));
       return item;
     });
     container.replaceChildren(...items);
@@ -284,6 +361,7 @@
     });
     loadSiteInfo();
     showCielProgrammeToday();
+    setupShareLinks();
     renderSection({
       containerId: "events-list",
       templateId: "event-template",
