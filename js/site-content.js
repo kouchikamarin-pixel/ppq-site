@@ -1,9 +1,11 @@
 /*
  * Contenu du site, chargé depuis le dossier data/ :
  *   site.json        coordonnées et réseaux (pied de page, page Contact)
- *   evenements.json  événements (accueil et page Évènements)
+ *   evenements.json  événements (accueil et page Évènements) ; une date
+ *                    « dateAutomatique » affiche le mois de la prochaine date de ciel-ouvert.json
  *   faq.json         questions fréquentes (page FAQ)
  *   priere.json      programme de prière du mois (page Prières)
+ *   ciel-ouvert.json prochaines dates de Ciel Ouvert (page Ciel Ouvert)
  * Modifier ces fichiers suffit à mettre à jour les pages.
  * Si un fichier ne se charge pas (ex. page ouverte directement depuis le disque),
  * les coordonnées écrites dans le HTML restent affichées ; les listes affichent un message.
@@ -75,8 +77,18 @@
     });
   }
 
-  function renderEvents(evenements, container, template) {
+  // Une date « dateAutomatique » affiche le mois de la prochaine date de Ciel Ouvert.
+  // Sans date à venir, on affiche le texte de secours écrit dans evenements.json.
+  function dateAffichee(evenement, prochaineDate) {
+    if (evenement.dateAutomatique && prochaineDate) {
+      return monthYearFr(prochaineDate);
+    }
+    return requireValue(evenement, "date");
+  }
+
+  async function renderEvents(evenements, container, template) {
     const limit = Number(container.dataset.limit) || evenements.length;
+    const prochaineDate = await prochaineDateCielOuvert();
     const cards = evenements.slice(0, limit).map((evenement) => {
       const card = cloneTemplate(template);
       const image = fieldOf(card, "image");
@@ -87,7 +99,7 @@
       });
       fieldOf(card, "titre").textContent = requireValue(evenement, "titre");
       fieldOf(card, "lieu").textContent = requireValue(evenement, "lieu");
-      fieldOf(card, "date").textContent = requireValue(evenement, "date");
+      fieldOf(card, "date").textContent = dateAffichee(evenement, prochaineDate);
       fieldOf(card, "description").textContent = requireValue(evenement, "description");
       return card;
     });
@@ -150,6 +162,74 @@
     container.replaceChildren(card);
   }
 
+  // « novembre 2026 » avec une majuscule : « Novembre 2026 ».
+  function monthYearFr(isoDate) {
+    const text = new Intl.DateTimeFormat("fr-CA", {
+      timeZone: "UTC",
+      month: "long",
+      year: "numeric",
+    }).format(new Date(`${isoDate}T12:00:00Z`));
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  }
+
+  function formatDateFr(isoDate) {
+    // Midi UTC : le jour affiché ne change pas selon le fuseau.
+    return new Intl.DateTimeFormat("fr-CA", {
+      timeZone: "UTC",
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).format(new Date(`${isoDate}T12:00:00Z`));
+  }
+
+  // Date du jour à Montréal, au format AAAA-MM-JJ (comparable à une date ISO).
+  function todayInMontreal() {
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Toronto",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date());
+  }
+
+  // Dates à venir (à partir d'aujourd'hui, à Montréal), de la plus proche à la plus lointaine.
+  function upcomingCielDates(dates) {
+    const today = todayInMontreal();
+    return dates
+      .filter((entry) => requireValue(entry, "date") >= today)
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }
+
+  // Première date à venir de ciel-ouvert.json, ou null si le fichier est absent ou sans date à venir.
+  async function prochaineDateCielOuvert() {
+    try {
+      const dates = upcomingCielDates(await fetchJson("ciel-ouvert.json"));
+      return dates.length > 0 ? dates[0].date : null;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }
+
+  function renderCielDates(dates, container, template) {
+    const upcoming = upcomingCielDates(dates);
+    if (upcoming.length === 0) {
+      const message = document.createElement("p");
+      message.textContent = "Les prochaines dates seront annoncées bientôt.";
+      container.replaceChildren(message);
+      return;
+    }
+    const items = upcoming.map((entry) => {
+      const item = cloneTemplate(template);
+      fieldOf(item, "date").textContent = formatDateFr(entry.date);
+      // L'heure et le lieu sont facultatifs : on n'affiche que ceux qui sont remplis.
+      fieldOf(item, "details").textContent = [entry.heure, entry.lieu].filter(Boolean).join(" · ");
+      return item;
+    });
+    container.replaceChildren(...items);
+  }
+
   async function renderSection({ containerId, templateId, fileName, render, errorMessage }) {
     const container = document.getElementById(containerId);
     const template = document.getElementById(templateId);
@@ -158,7 +238,7 @@
     }
     try {
       const data = await fetchJson(fileName);
-      render(data, container, template);
+      await render(data, container, template);
     } catch (error) {
       console.error(error);
       showError(container, errorMessage);
@@ -174,6 +254,13 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
+    renderSection({
+      containerId: "ciel-dates",
+      templateId: "ciel-dates-template",
+      fileName: "ciel-ouvert.json",
+      render: renderCielDates,
+      errorMessage: "Les prochaines dates sont momentanément indisponibles.",
+    });
     loadSiteInfo();
     renderSection({
       containerId: "events-list",

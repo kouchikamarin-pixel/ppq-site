@@ -2,7 +2,8 @@
   {
     "titre": "Ciel Ouvert",
     "lieu": "Espace Divine",
-    "date": "Février 2025",
+    "date": "Prochainement",
+    "dateAutomatique": true,
     "description": "Ciel ouvert est un programme ou nous voulons rassembler des jeunes chrétiens et impacter leur vies par des enseignements qui auront pour but principale d’allumer un feu en eux qui les pousse à franchir le mur des limitations, qui les rapproche davantage de Jésus et qui les propulse dans leur destinée prophétique en Christ.",
     "image": "images/ppq/IMG_4474.JPG",
     "lien": "Ciel%20Ouvert.html"
