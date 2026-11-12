@@ -245,6 +245,21 @@
     }
   }
 
+  // Affiche le programme sur l'accueil seulement si aujourd'hui (à Montréal) est un jour listé dans ciel-ouvert.json.
+  async function showCielProgrammeToday() {
+    const banner = document.getElementById("ciel-programme");
+    if (!banner) {
+      return;
+    }
+    try {
+      const dates = await fetchJson("ciel-ouvert.json");
+      const today = todayInMontreal();
+      banner.hidden = !dates.some((entry) => requireValue(entry, "date") === today);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   async function loadSiteInfo() {
     try {
       bindSiteInfo(await fetchJson("site.json"));
@@ -262,6 +277,7 @@
       errorMessage: "Les prochaines dates sont momentanément indisponibles.",
     });
     loadSiteInfo();
+    showCielProgrammeToday();
     renderSection({
       containerId: "events-list",
       templateId: "event-template",

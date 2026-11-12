@@ -1,0 +1,21 @@
+/* Affiche du programme Ciel Ouvert sur la page d'accueil.
+   La section reste masquée (attribut hidden) sauf les jours de la conférence. */
+.ciel-programme {
+    padding: 40px 0;
+    text-align: center;
+    background-color: #fff8db;
+}
+
+.ciel-programme-link {
+    display: inline-block;
+}
+
+.ciel-programme img {
+    display: block;
+    width: 100%;
+    max-width: 380px;
+    height: auto;
+    margin: 0 auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
