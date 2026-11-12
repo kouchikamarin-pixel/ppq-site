@@ -29,6 +29,7 @@
 
     <link href="css/Style.css" rel="stylesheet" />
     <link href="css/gallerie.css" rel="stylesheet"> <!-- Page spécifique -->
+    <link href="css/visionneuse.css" rel="stylesheet" />
     <!--
 
 Tooplate 2134 Gotto Job
@@ -284,12 +285,26 @@ Bootstrap 5 HTML CSS Template
       </div>
     </footer>
 
+    <dialog id="photo-viewer" class="photo-viewer" aria-label="Visionneuse de photos">
+      <div class="photo-viewer-bar">
+        <p class="photo-viewer-count" id="photo-viewer-count" aria-live="polite"></p>
+        <button type="button" class="photo-viewer-close" aria-label="Fermer la visionneuse">&times;</button>
+      </div>
+      <div class="photo-viewer-stage">
+        <button type="button" class="photo-viewer-nav photo-viewer-prev" aria-label="Photo précédente">&#8249;</button>
+        <img id="photo-viewer-image" class="photo-viewer-image" alt="" />
+        <button type="button" class="photo-viewer-nav photo-viewer-next" aria-label="Photo suivante">&#8250;</button>
+      </div>
+      <ul class="photo-viewer-thumbs" id="photo-viewer-thumbs"></ul>
+    </dialog>
+
     <!-- JAVASCRIPT FILES -->
     <script src="js/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script src="js/owl.carousel.min.js"></script>
     <script src="js/counter.js"></script>
     <script src="js/site-content.js"></script>
+    <script src="js/gallery-viewer.js"></script>
     <script src="js/custom.js"></script>
   </body>
 </html>
